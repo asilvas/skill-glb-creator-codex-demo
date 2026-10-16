@@ -1,0 +1,34 @@
+{
+  "name": "glb-creator-experiment",
+  "private": true,
+  "type": "module",
+  "overrides": {"sharp": "0.34.5"},
+  "dependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "@headless-three/renderer": "0.4.5",
+    "@rendergl/headless-three-webgpu-cli": "0.2.0",
+    "@rendergl/headless-three-webgpu": "0.2.0",
+    "@rendergl/headless-three-webgpu-helpers": "0.2.0",
+    "three": "0.184.0",
+    "sharp": "0.34.5",
+    "gltf-validator": "2.0.0-dev.3.10",
+    "js-tiktoken": "1.0.21"
+  },
+  "scripts": {
+    "setup": "bun scripts/setup.ts",
+    "baseline": "bun demo/blender.ts",
+    "build": "bun demo/create-monster.ts --scratch",
+    "demo": "bun demo/create-monster.ts",
+    "preview": "bun scripts/preview.ts",
+    "benchmark": "bun demo/benchmark.ts",
+    "review": "bun demo/review.ts",
+    "report": "bun demo/report.ts",
+    "frame": "bun scripts/frame.ts",
+    "materials": "bun demo/materials.ts",
+    "study": "bun demo/study.ts",
+    "check": "bun scripts/skill-check.ts",
+    "test": "bun test ./tests/preview.test.ts ./tests/cleanup.test.ts",
+    "clean": "bun scripts/clean.ts"
+  }
+}

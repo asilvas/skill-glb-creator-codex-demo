@@ -1,0 +1,8 @@
+/node_modules/
+/tmp/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.blend
+*.blend1

@@ -1,0 +1,8 @@
+{
+  "model": "grok-imagine-image-2.0",
+  "resolution": "1k",
+  "quality": "medium",
+  "aspect_ratio": "1:1",
+  "n": 1,
+  "prompt": "A seamless tileable BASE COLOR / ALBEDO material texture, square image, fills every pixel edge to edge. Orthographic flat scan, no perspective, no objects, no border, no labels, no preview sphere. Completely diffuse flat illumination, no directional light or cast shadow or specular highlight. Natural photoreal painterly high detail, for the materials of a dark basalt-and-root monster. Dark weathered basalt with irregular large angular fractured slate planes, hairline mineral cracks, charcoal grey-brown mineral variation, a few ochre lichen speckles and tiny muted olive moss traces in fissures. Fine rock pores and chipped strata, no regular bricks, not pale grey or blue."
+}

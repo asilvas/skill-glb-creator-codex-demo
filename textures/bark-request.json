@@ -1,0 +1,8 @@
+{
+  "model": "grok-imagine-image-2.0",
+  "resolution": "1k",
+  "quality": "medium",
+  "aspect_ratio": "1:1",
+  "n": 1,
+  "prompt": "A seamless tileable BASE COLOR / ALBEDO material texture, square image, fills every pixel edge to edge. Orthographic flat scan, no perspective, no objects, no border, no labels, no preview sphere. Completely diffuse flat illumination, no directional light or cast shadow or specular highlight. Natural photoreal painterly high detail, for the materials of a dark basalt-and-root monster. Twisted ancient russet oak ROOT BARK, closely spaced branching and intertwining longitudinal fibrous grain running vertically across the image, brown ridges in warm umber, dark brown crevices, subtle tan raised fibers, fine weathered fissures. Dense intricate long woody strands rather than crosscut log rings. Rich earthy organic wood, not orange or polished timber."
+}

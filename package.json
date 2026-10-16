@@ -1,0 +1,39 @@
+{
+  "name": "skill-glb-creator-codex-demo",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.4.4-0"
+  },
+  "overrides": {
+    "sharp": "0.34.5"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "@headless-three/renderer": "0.4.5",
+    "three": "0.184.0",
+    "sharp": "0.34.5",
+    "gltf-validator": "2.0.0-dev.3.10",
+    "@asilvas/glb-creator": "file:../skill-glb-creator",
+    "@rendergl/headless-three-webgpu-cli": "0.2.0",
+    "@rendergl/headless-three-webgpu": "0.2.0",
+    "@rendergl/headless-three-webgpu-helpers": "0.2.0",
+    "js-tiktoken": "1.0.21"
+  },
+  "scripts": {
+    "setup": "bun setup.ts",
+    "build": "bun create-monster.ts --scratch",
+    "demo": "bun create-monster.ts",
+    "baseline": "bun blender.ts",
+    "benchmark": "bun benchmark.ts",
+    "review": "bun review.ts",
+    "report": "bun report.ts",
+    "retain": "bun finalize.ts",
+    "materials": "bun materials.ts",
+    "study": "bun study.ts",
+    "test": "bun test --preload ./env.ts ./tests/preview.test.ts",
+    "check": "bun check.ts"
+  }
+}

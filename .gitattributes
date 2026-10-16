@@ -1,0 +1,15 @@
+* text=auto
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.ts text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+bun.lock text eol=lf
+*.glb binary
+*.png binary
+*.jpg binary
+*.webp binary
+# These are measured byte snapshots, including their original line endings.
+recorded-sources/** -text -whitespace
+renderer-failures.txt -text -whitespace

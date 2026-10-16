@@ -1,0 +1,29 @@
+{
+  "provider": "xAI",
+  "endpoint": "/v1/images/generations",
+  "created_at": "2026-10-16T17:36:45.424Z",
+  "sources": [],
+  "request": {
+    "model": "grok-imagine-image-2.0",
+    "prompt": "A seamless tileable BASE COLOR / ALBEDO material texture, square image, fills every pixel edge to edge. Orthographic flat scan, no perspective, no objects, no border, no labels, no preview sphere. Completely diffuse flat illumination, no directional light or cast shadow or specular highlight. Natural photoreal painterly high detail, for the materials of a dark basalt-and-root monster. Weathered aged IVORY / HORN surface for long claw talons: warm cream bone with irregular fine longitudinal striations running vertically, a few subtle tan hairline grooves and tiny dark pores, soft pale beige variation. Matte natural horn, no blood, no objects, no tooth silhouette, flat texture only.",
+    "n": 1,
+    "aspect_ratio": "1:1",
+    "resolution": "1k",
+    "quality": "medium"
+  },
+  "response": {
+    "data": [
+      {
+        "url": "https://imgen.x.ai/xai-imgen/xai-tmp-imgen-5d12b9f4-9213-967f-9320-1513069df7d5-ad291d5c.jpeg",
+        "mime_type": "image/jpeg"
+      }
+    ],
+    "usage": {
+      "cost_in_usd_ticks": 600000000
+    }
+  },
+  "path": "C:\\Users\\aaron\\game.ai5\\glb-creator\\tmp\\textures-v2\\ivory.jpg",
+  "bytes": 419364,
+  "sha256": "75f593b4631a15df4fbd729b5f45b5162dfc1ca0843324138343a88089d62fcb",
+  "extension": ".jpg"
+}
