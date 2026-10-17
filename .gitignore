@@ -6,3 +6,5 @@
 __pycache__/
 *.blend
 *.blend1
+/.agents/
+/.codex/
