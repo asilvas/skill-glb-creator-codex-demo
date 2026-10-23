@@ -10,6 +10,3 @@ bun.lock text eol=lf
 *.png binary
 *.jpg binary
 *.webp binary
-# These are measured byte snapshots, including their original line endings.
-recorded-sources/** -text -whitespace
-renderer-failures.txt -text -whitespace

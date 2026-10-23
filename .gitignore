@@ -1,10 +1,28 @@
-/node_modules/
+# Local experiment data, archives and development copies are not source.
+/experiments/
+/results/
+/runs/
+/local/
+/.agents/
+/.codex/
 /tmp/
+/recorded-sources/
+/textures/
+/tests/
+
+# Only the reusable results viewer remains under tools.
+/tools/*
+!/tools/results/
+
+**/node_modules/
+**/__pycache__/
 .env
 .env.*
 !.env.example
-__pycache__/
+*.log
 *.blend
 *.blend1
-/.agents/
-/.codex/
+/*.glb
+/*.png
+/*.webp
+/experiments/

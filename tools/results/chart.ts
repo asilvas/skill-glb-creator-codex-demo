@@ -1,0 +1,50 @@
+/** Pure chart rendering keeps shortlist/scoping checks testable without WebGL. */
+import {escapeHTML as esc,finite,pareto,comparisonKey,type ResultRecord} from './model';
+import {distinctGraphRecords,graphRankLabel,qualityGraphLeaders,type GraphRanking} from './graph-selection';
+import {fmt,label,licenseOf,nf,reviewContextLabel,qualityLabel} from './presentation';
+export type PlotState={x:string;y:string;chart:string;logX:boolean;group:string;active:string;ranking?:GraphRanking};
+export function renderTradeoffPlot(records:ResultRecord[],state:PlotState,width=920,visibleCount=records.length){
+  const leaders=qualityGraphLeaders(records),limited=state.ranking!=='all'&&leaders.compatible,distinct=distinctGraphRecords(records),selected=limited?leaders.rows:distinct.rows,overview=!state.group;
+  const useX=state.chart==='scatter'?state.x:state.y,log=state.chart==='scatter'&&state.logX;
+  const valid=selected.filter(r=>finite(r.metrics[useX]?.value)&&finite(r.metrics[state.y]?.value)&&!r.metrics[useX].bound&&!r.metrics[state.y].bound&&(!log||r.metrics[useX].value!>0));
+  const qualityAxis=[useX,state.y].some(key=>valid.some(r=>/^quality|^modelQuality|^humanQuality/.test(key)||/^points(?:\/|$)/.test(r.metrics[key].unit)));
+  const scopes=new Set(valid.map(r=>comparisonKey(r,useX,state.y))),mixedQuality=qualityAxis&&(scopes.size>1||scopes.has(null));
+  const mixedUnits=[useX,state.y].some(key=>new Set(valid.map(r=>r.metrics[key].unit)).size>1);
+  const withheld=mixedQuality||overview&&(state.chart==='distribution'||mixedUnits),plotted=new Set(withheld?[]:valid.map(r=>r.id));
+  const context=(r:ResultRecord)=>[qualityLabel(r),r.cohort,reviewContextLabel(r)||'Review not recorded',r.metrics.quality?.scope||'Rubric not recorded'].join(' · ');
+  const rankedHTML=limited&&selected.length?`<div class="graph-leaders" aria-label="Ranked graph selections">${selected.map(r=>`<div class="graph-leader"><button data-select="${esc(r.id)}" class="itemname">${esc(r.name)}</button><span class="badge">${esc(graphRankLabel(leaders.ranks.get(r.id)))}</span><small>${esc(fmt(r.metrics.quality,'quality'))} quality · ${esc(fmt(r.metrics.qualityPerMB,'qualityPerMB'))} per MB${plotted.has(r.id)?'':withheld?' · not plotted: choose a compatible scope':' · not plotted: chosen axis value missing or invalid'}</small><small class="graph-review-context">${esc(context(r))}</small></div>`).join('')}</div>`:'';
+  const mode=limited?'Within-scope union of top 15 score estimates + top 15 per MB':'All distinct graph assets · unranked overview';
+  const summary=`${mode}: ${selected.length} selected · ${plotted.size} plotted. ${Math.max(0,visibleCount-selected.length)} other filtered observations remain in the table.${distinct.duplicates?` ${distinct.duplicates} duplicate observations collapsed by exact GLB SHA or record ID; current preferred, latest review otherwise.`:''}`;
+  const scope=overview?'Unranked across reviews. Mixed quality scopes have no numerical ranking or pooled Pareto, deltas or averages.':'One compatible comparison scope; no cross-review score pooling.';
+  const base={rankedHTML,selectedIds:selected.map(r=>r.id),plottedIds:[...plotted],frontierIds:[] as string[]};
+  const empty=(message:string)=>({...base,html:`<div class="empty">${esc(message)}</div>`,note:esc(summary+' '+scope)});
+  if(!selected.length)return empty(limited?'No scored quality leaders in this selection. Choose All distinct assets to explore other measured metrics; unscored records stay in the table.':'No graph observations in this scope.');
+  if(mixedUnits)return empty('These axis values use different units. Choose one compatible comparison scope to plot them.');
+  if(mixedQuality)return empty('Choose one compatible comparison scope for quality comparisons. Mixed rubrics and review contexts are unranked; every asset remains in the table.');
+  if(overview&&state.chart==='distribution')return empty('Choose one compatible comparison scope for a distribution. The overview is unranked.');
+  if(!valid.length)return empty('Selected assets have no valid measurements for these axes. Missing values are listed below and never treated as zero.');
+  if(overview&&[useX,state.y].some(key=>new Set(valid.map(r=>r.metrics[key].unit)).size>1))return empty('These axis values use different units. Choose one compatible comparison scope to plot them.');
+  const W=Math.max(720,width),H=425,L=72,R=25,T=28,B=60,xvals=valid.map(r=>log?Math.log10(r.metrics[useX].value!):r.metrics[useX].value!),yvals=valid.map(r=>r.metrics[state.y].value!);
+  let xmin=log?Math.min(...xvals):Math.min(0,...xvals),xmax=Math.max(...xvals),ymin=Math.min(0,...yvals),ymax=Math.max(...yvals);if(xmin===xmax){xmin-=.5;xmax+=.5;}if(ymin===ymax){ymin-=.5;ymax+=.5;}if(state.y==='quality'){ymin=0;ymax=10;}else ymax+=.06*(ymax-ymin);xmax+=.04*(xmax-xmin);
+  const xx=(v:number)=>L+(v-xmin)/(xmax-xmin)*(W-L-R),yy=(v:number)=>T+(ymax-v)/(ymax-ymin)*(H-T-B),frontier=overview?new Set<string>():pareto(valid,state.x,state.y);
+  const color=(r:ResultRecord)=>{const rank=leaders.ranks.get(r.id);return state.active===r.id?'#fff3d3':/fail|unmet/i.test(r.status)?'#f3a391':limited&&rank?.quality&&rank.perMB?'#e9c585':limited&&rank?.quality?'#a9cee8':'#bedb9a';};
+  const title=(r:ResultRecord)=>esc([r.name,licenseOf(r).label,graphRankLabel(leaders.ranks.get(r.id)),context(r),label(state.x)+': '+fmt(r.metrics[state.x],state.x),label(state.y)+': '+fmt(r.metrics[state.y],state.y)].filter(Boolean).join(' | '));
+  const ticks:string[]=[];for(let i=0;i<=5;i++){const xv=xmin+(xmax-xmin)*i/5,yv=ymin+(ymax-ymin)*i/5;ticks.push(`<line x1="${L}" x2="${W-R}" y1="${yy(yv)}" y2="${yy(yv)}" stroke="#3a4c42"/><text x="${L-10}" y="${yy(yv)+4}" text-anchor="end">${esc(fmt({value:yv,unit:valid[0].metrics[state.y].unit},state.y))}</text><text x="${xx(xv)}" y="${H-B+26}" text-anchor="middle">${esc(fmt({value:log?10**xv:xv,unit:valid[0].metrics[useX].unit},useX))}</text>`);}
+  let plot='';
+  if(state.chart==='scatter'){
+    plot=valid.map(r=>{const xv=log?Math.log10(r.metrics[state.x].value!):r.metrics[state.x].value!,yv=r.metrics[state.y].value!,range=state.y==='quality'&&r.metrics.qualityMin?.value!=null&&r.metrics.qualityMax?.value!=null?`<line x1="${xx(xv)}" x2="${xx(xv)}" y1="${yy(r.metrics.qualityMin.value)}" y2="${yy(r.metrics.qualityMax.value)}" stroke="${color(r)}" stroke-width="2"/>`:'';return `<g tabindex="0" class="dot" role="button" aria-label="${esc(r.name+' · '+graphRankLabel(leaders.ranks.get(r.id))+' · '+context(r))}" data-select="${esc(r.id)}"><title>${title(r)}</title>${range}<circle cx="${xx(xv)}" cy="${yy(yv)}" r="${state.active===r.id?8:6}" fill="${color(r)}" stroke="${frontier.has(r.id)?'#e9c585':'#111817'}" stroke-width="${frontier.has(r.id)?3:1.5}"/></g>`;}).join('');
+  }else if(state.chart==='bars'){
+    // Every union member stays visible; no separate top20 truncation by one axis.
+    const rows=[...valid].sort((a,b)=>b.metrics[state.y].value!-a.metrics[state.y].value!||(a.id<b.id?-1:a.id>b.id?1:0)),barWidth=(W-L-R)/rows.length;
+    ticks.length=0;for(let i=0;i<=5;i++){const v=ymin+(ymax-ymin)*i/5;ticks.push(`<line x1="${L}" x2="${W-R}" y1="${yy(v)}" y2="${yy(v)}" stroke="#3a4c42"/><text x="${L-10}" y="${yy(v)+4}" text-anchor="end">${esc(fmt({value:v,unit:valid[0].metrics[state.y].unit},state.y))}</text>`);}
+    plot=rows.map((r,i)=>`<g tabindex="0" role="button" aria-label="${esc(r.name+' · '+graphRankLabel(leaders.ranks.get(r.id))+' · '+context(r))}" class="dot" data-select="${esc(r.id)}"><title>${title(r)}</title><rect x="${L+i*barWidth+3}" y="${yy(Math.max(0,r.metrics[state.y].value!))}" width="${Math.max(2,barWidth-6)}" height="${Math.abs(yy(r.metrics[state.y].value!)-yy(0))}" rx="3" fill="${color(r)}"/><text x="${L+(i+.5)*barWidth}" y="${H-B+22}" text-anchor="middle">${i+1}</text></g>`).join('');
+    plot+=`<text x="${(L+W-R)/2}" y="${H-15}" text-anchor="middle">All ${rows.length} selected assets · ordered by numerical ${esc(label(state.y))}</text>`;
+  }else{
+    const bins=Math.min(10,Math.max(3,Math.ceil(Math.sqrt(valid.length)))),lo=Math.min(...yvals),hi=Math.max(...yvals),step=(hi-lo||1)/bins,counts=Array.from({length:bins},()=>0);for(const v of yvals)counts[Math.min(bins-1,Math.floor((v-lo)/step))]++;const maxCount=Math.max(...counts),binWidth=(W-L-R)/bins;ticks.length=0;
+    plot=counts.map((c,i)=>{const height=c/maxCount*(H-T-B);return `<rect x="${L+i*binWidth+3}" y="${H-B-height}" width="${binWidth-6}" height="${height}" fill="#bedb9a" rx="3"><title>${esc(label(state.y))} ${nf(lo+i*step,3)}–${nf(lo+(i+1)*step,3)}: ${c} observations</title></rect><text x="${L+(i+.5)*binWidth}" y="${H-B+23}" text-anchor="middle">${esc(fmt({value:lo+(i+.5)*step,unit:valid[0].metrics[state.y].unit},state.y))}</text><text x="${L+(i+.5)*binWidth}" y="${H-B-height-8}" text-anchor="middle">${c}</text>`;}).join('');
+  }
+  const html=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${overview?'Unranked overview':'Compatible scope'} · ${esc(label(state.x))} and ${esc(label(state.y))}"><g fill="#b5c5ba" font-family="system-ui,sans-serif" font-size="11">${ticks.join('')}${plot}${state.chart==='scatter'?`<text x="${(L+W-R)/2}" y="${H-15}" text-anchor="middle">${esc(label(state.x))} ${log?'(log scale)':''}</text><text transform="translate(17 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle">${esc(label(state.y))}</text>`:''}</g></svg>`;
+  const legend=limited?'Blue: top quality · green: top per MB · gold: both rankings. Red retains failed/unmet status. ':'';
+  const note=esc(summary+' '+scope+' '+(selected.length>valid.length?`${selected.length-valid.length} selected assets have missing axis values or nonpositive log X; see their ranked entries. `:'')+legend+(!overview&&state.chart==='scatter'?'Gold outlines mark the nominal Pareto frontier within this compatible scope. ':'')+'Powerhouse values are unvalidated model estimates; MATERIAL ONLY reviews do not measure complete assets. Human ceilings are upper bounds, never exact scored points. Reviewer ranges are disagreement, not confidence intervals.');
+  return {...base,html,note,frontierIds:[...frontier]};
+}
